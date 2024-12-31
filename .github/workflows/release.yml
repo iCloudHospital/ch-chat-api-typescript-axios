@@ -5,10 +5,6 @@ on:
       - publish npm package
   workflow_dispatch:
 
-permissions:
-  contents: write
-  pull-requests: write
-
 jobs:
   release:
     name: Release
@@ -23,6 +19,7 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 20
+          registry-url: https://registry.npmjs.org
 
       - name: Setup npmrc
         run: |
