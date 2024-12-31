@@ -1,0 +1,50 @@
+name: Version Update
+on:
+  repository_dispatch:
+    types:
+      - publish npm package
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  release:
+    name: Release
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Setup npmrc
+        run: |
+          echo "//registry.npmjs.org/:_authToken=${{ secrets.NPM_TOKEN }}" > ~/.npmrc
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Generate OpenAPI Spec
+        run: npm run generate
+
+      - name: Update patch version
+        run: npm version patch
+
+      - name: Publish to NPM
+        run: npm publish --access public --no-git-checks
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+          HUSKY: 0
+
+      - name: Push changes
+        run: |
+          git config --local user.email "clcl6084@gmail.com"
+          git config --local user.name "froggy1014"
+          git push --follow-tags
