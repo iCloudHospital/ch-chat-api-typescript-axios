@@ -34,6 +34,11 @@ jobs:
       - name: Generate OpenAPI Spec
         run: npm run generate
 
+      - name: Configure Git
+        run: |
+          git config --local user.email "clcl6084@gmail.com"
+          git config --local user.name "froggy1014"
+
       - name: Update patch version
         run: npm version patch
 
@@ -44,7 +49,4 @@ jobs:
           HUSKY: 0
 
       - name: Push changes
-        run: |
-          git config --local user.email "clcl6084@gmail.com"
-          git config --local user.name "froggy1014"
-          git push --follow-tags
+        run: git push --follow-tags
