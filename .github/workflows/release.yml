@@ -21,13 +21,6 @@ jobs:
           node-version: 20
           registry-url: https://registry.npmjs.org
 
-      - name: Setup npmrc
-        run: |
-         echo "NPM_TOKEN: ${{ secrets.NPM_TOKEN }}"
-          echo "NPM_TOKEN_GihubIntegratedServices: ${{ secrets.NPM_TOKEN_GihubIntegratedServices }}"
-          echo "//registry.npmjs.org/:_authToken=${{ secrets.NPM_TOKEN_GihubIntegratedServices }}" >> ~/.npmrc
-          echo "//npm.pkg.github.com/:_authToken=${{ secrets.NPM_TOKEN_GihubIntegratedServices }}" > ~/.npmrc
-
       - name: Install dependencies
         run: npm install
 
@@ -46,7 +39,7 @@ jobs:
         run: npm publish --access public --no-git-checks
         env:
           GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
-          NPM_TOKEN: ${{ secrets.NPM_TOKEN_GihubIntegratedServices }}
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
           HUSKY: 0
 
       - name: Push changes
