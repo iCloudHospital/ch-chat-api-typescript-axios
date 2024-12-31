@@ -44,7 +44,7 @@ jobs:
         run: npm publish --access public --no-git-checks
         env:
           GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
-          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN_GihubIntegratedServices }}
           HUSKY: 0
 
       - name: Push changes
