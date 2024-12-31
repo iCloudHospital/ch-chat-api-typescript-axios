@@ -32,6 +32,11 @@ jobs:
           git config --local user.email "clcl6084@gmail.com"
           git config --local user.name "froggy1014"
 
+      - name: Commit generated files
+        run: |
+          git add .
+          git commit -m "chore: updated openapi files" || echo "No changes to commit"
+
       - name: Update patch version
         run: npm version patch
 
