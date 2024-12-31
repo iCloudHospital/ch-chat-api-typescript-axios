@@ -48,4 +48,6 @@ jobs:
           HUSKY: 0
 
       - name: Push changes
-        run: git push --follow-tags
+        run: |
+          git remote set-url origin https://${{ secrets.GH_TOKEN }}@github.com/${{ github.repository }}.git
+          git push --follow-tags
