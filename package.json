@@ -44,6 +44,10 @@
       "config": ".cz-config.ts"
     }
   },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/icloudhospital/ch-chat-api-typescript-axios"
+  },
   "files": [
     "dist",
     "README.md",
@@ -53,6 +57,6 @@
   ],
   "publishConfig": {
     "access": "public",
-    "registry": "https://npm.pkg.github.com/"
+    "registry": "https://registry.npmjs.org/"
   }
 }
