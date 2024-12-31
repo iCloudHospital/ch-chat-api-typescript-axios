@@ -1,5 +1,5 @@
 {
-  "name": "@icloudhospital/ch-chat-api-typescript-axios",
+  "name": "ch-chat-api-typescript-axios",
   "description": "An OpenAPI generator tool for the CH Chat API, designed to simplify API client generation and streamline integration workflows.",
   "version": "1.0.0",
   "main": "dist/index.js",
@@ -13,7 +13,6 @@
     "ci:publish": "npm publish --access public",
     "release": "changeset publish"
   },
-  "author": "hyounoosung@gmail.com",
   "license": "ISC",
   "keywords": [
     "axios",
