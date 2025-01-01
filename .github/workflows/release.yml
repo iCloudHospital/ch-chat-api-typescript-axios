@@ -51,16 +51,27 @@ jobs:
           message: "📦 api: updated openapi files"
 
       - name: Update version
-        run: npm version ${{ github.event.inputs.version || github.event.client_payload.version || 'patch' }}
+        run: npm version ${{ github.event.inputs.version || github.event.client_payload.version || 'patch' }} --no-git-tag-version
 
       - name: Get package version
         id: package-version
         run: echo "current-version=$(node -p "require('./package.json').version")" >> $GITHUB_OUTPUT
 
-      - name: Push changes
+      - name: Create Git tag
         run: |
-          git remote set-url origin https://${{ secrets.GH_TOKEN }}@github.com/${{ github.repository }}.git
-          git push --follow-tags
+          git tag -a "v${{ steps.package-version.outputs.current-version }}" -m "🔖 Release v${{ steps.package-version.outputs.current-version }}"
+          git push origin "v${{ steps.package-version.outputs.current-version }}"
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: "v${{ steps.package-version.outputs.current-version }}"
+          name: "Release v${{ steps.package-version.outputs.current-version }}"
+          draft: false
+          prerelease: false
+          generate_release_notes: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
 
       - name: Publish to NPM
         run: npm publish --access public --no-git-checks
