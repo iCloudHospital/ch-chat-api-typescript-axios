@@ -62,12 +62,12 @@ jobs:
 
       - name: Get package version
         id: package-version
-        run: node -p "require('./package.json').version" > $GITHUB_OUTPUT
+        run: echo "current-version=$(node -p "require('./package.json').version")" >> $GITHUB_OUTPUT
 
       - name: Push changes
         uses: EndBug/add-and-commit@v9
         with:
           push: true
           tag_push: "--follow-tags"
-          tag: "v${{ steps.package-version.outputs.current-version}}"
-          message: "🔖 Release v${{ steps.package-version.outputs.current-version}}"
+          tag: "v${{ steps.package-version.outputs.current-version }}"
+          message: "🔖 Release v${{ steps.package-version.outputs.current-version }}"
