@@ -4,6 +4,16 @@ on:
     types:
       - publish npm package
   workflow_dispatch:
+    inputs:
+      version:
+        type: choice
+        description: "Version type to bump"
+        required: true
+        default: "patch"
+        options:
+          - patch
+          - minor
+          - major
 
 jobs:
   release:
@@ -33,12 +43,12 @@ jobs:
           git config --local user.name "froggy1014"
 
       - name: Commit generated files
-        run: |
-          git add .
-          git commit -m "chore: updated openapi files" || echo "No changes to commit"
+        uses: EndBug/add-and-commit@v9
+        with:
+          message: "📦 api: updated openapi files"
 
-      - name: Update patch version
-        run: npm version patch
+      - name: Update version
+        run: npm version ${{ github.event.inputs.version || github.event.client_payload.version || 'patch' }}
 
       - name: Publish to NPM
         run: npm publish --access public --no-git-checks
@@ -48,6 +58,7 @@ jobs:
           HUSKY: 0
 
       - name: Push changes
-        run: |
-          git remote set-url origin https://${{ secrets.GH_TOKEN }}@github.com/${{ github.repository }}.git
-          git push --follow-tags
+        uses: EndBug/add-and-commit@v9
+        with:
+          push: true
+          tag_push: "--follow-tags"
