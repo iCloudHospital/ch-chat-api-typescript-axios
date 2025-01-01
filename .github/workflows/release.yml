@@ -45,17 +45,18 @@ jobs:
           git config --local user.email "clcl6084@gmail.com"
           git config --local user.name "froggy1014"
 
-      - name: Commit generated files
-        uses: EndBug/add-and-commit@v9
-        with:
-          message: "📦 api: updated openapi files"
-
       - name: Update version
         run: npm version ${{ github.event.inputs.version || github.event.client_payload.version || 'patch' }} --no-git-tag-version
 
       - name: Get package version
         id: package-version
         run: echo "current-version=$(node -p "require('./package.json').version")" >> $GITHUB_OUTPUT
+
+      - name: Commit generated files
+        uses: EndBug/add-and-commit@v9
+        with:
+          message: "📦 api: updated openapi files"
+          add: "['package.json', 'package-lock.json', 'src/**']"
 
       - name: Create Git tag
         run: |
