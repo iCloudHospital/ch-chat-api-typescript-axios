@@ -14,6 +14,9 @@ on:
           - patch
           - minor
           - major
+  push:
+    tags:
+      - "v*" # Trigger on version tags
 
 jobs:
   release:
@@ -57,8 +60,14 @@ jobs:
           NPM_TOKEN: ${{ secrets.NPM_TOKEN_GihubIntegratedServices }}
           HUSKY: 0
 
+      - name: Get package version
+        id: package-version
+        run: node -p "require('./package.json').version" > $GITHUB_OUTPUT
+
       - name: Push changes
         uses: EndBug/add-and-commit@v9
         with:
           push: true
           tag_push: "--follow-tags"
+          tag: "v${{ steps.package-version.outputs.current-version}}"
+          message: "🔖 Release v${{ steps.package-version.outputs.current-version}}"
