@@ -1,0 +1,29 @@
+name: Manual Publish Trigger
+on:
+  workflow_dispatch:
+    inputs:
+      version_type:
+        description: "Version increment type"
+        required: true
+        default: "patch"
+        type: choice
+        options:
+          - patch
+          - minor
+          - major
+      message:
+        description: "Commit message"
+        required: false
+        default: "📦 api: sync code changes"
+        type: string
+
+jobs:
+  trigger-publish:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Trigger publish workflow
+        uses: peter-evans/repository-dispatch@v2
+        with:
+          token: ${{ secrets.GH_TOKEN }}
+          event-type: publish npm package
+          client-payload: '{"version_type": "${{ github.event.inputs.version_type }}", "message": "${{ github.event.inputs.message }}"}'
