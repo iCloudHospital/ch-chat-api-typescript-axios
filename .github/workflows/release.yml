@@ -53,21 +53,21 @@ jobs:
       - name: Update version
         run: npm version ${{ github.event.inputs.version || github.event.client_payload.version || 'patch' }}
 
-      - name: Publish to NPM
-        run: npm publish --access public --no-git-checks
-        env:
-          GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
-          NPM_TOKEN: ${{ secrets.NPM_TOKEN_GihubIntegratedServices }}
-          HUSKY: 0
-
       - name: Get package version
         id: package-version
         run: echo "current-version=$(node -p "require('./package.json').version")" >> $GITHUB_OUTPUT
 
-      - name: Push changes
+      - name: Push changes and tag
         uses: EndBug/add-and-commit@v9
         with:
           push: true
           tag_push: "--follow-tags"
           tag: "v${{ steps.package-version.outputs.current-version }}"
           message: "🔖 Release v${{ steps.package-version.outputs.current-version }}"
+
+      - name: Publish to NPM
+        run: npm publish --access public --no-git-checks
+        env:
+          GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN_GihubIntegratedServices }}
+          HUSKY: 0
