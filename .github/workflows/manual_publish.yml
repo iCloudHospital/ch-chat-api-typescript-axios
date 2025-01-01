@@ -34,6 +34,16 @@ jobs:
         run: |
           npm version ${{ github.event.inputs.version_type }} --no-git-tag-version
 
+      - name: Trigger publish workflow
+        uses: peter-evans/repository-dispatch@v2
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          event-type: publish npm package
+          client-payload: '{"version_type": "${{ github.event.inputs.version_type }}"}'
+
+      - name: Wait for publish workflow to complete
+        run: sleep 30
+
       - name: Commit changes
         run: |
           git config --local user.email "github-actions[bot]@users.noreply.github.com"
@@ -41,10 +51,3 @@ jobs:
           git add package.json
           git commit -m "📦 api: sync code changes"
           git push origin HEAD:main
-
-      - name: Trigger publish workflow
-        uses: peter-evans/repository-dispatch@v2
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-          event-type: publish npm package
-          client-payload: '{"version_type": "${{ github.event.inputs.version_type }}"}'
