@@ -1,7 +1,7 @@
 {
   "name": "ch-chat-api-typescript-axios",
   "description": "An OpenAPI generator tool for the CH Chat API, designed to simplify API client generation and streamline integration workflows.",
-  "version": "1.1.3",
+  "version": "1.1.4",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "scripts": {
