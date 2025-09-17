@@ -33,7 +33,7 @@ jobs:
         uses: peter-evans/repository-dispatch@v3
         with:
           token: ${{ secrets.GH_TOKEN }}
-          repository: icloudhospital/cloudhospital.admin
+          repository: iCloudHospital/cloudhospital.admin
           event-type: api-release-completed
           client-payload: |
             {
