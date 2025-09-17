@@ -1,0 +1,43 @@
+name: Trigger External Repository Dispatch
+
+on:
+  workflow_run:
+    workflows: ["Version Update"]
+    types:
+      - completed
+  workflow_dispatch:
+    inputs:
+      wait_minutes:
+        type: number
+        description: "Minutes to wait before triggering (default: 10)"
+        required: false
+        default: 10
+
+jobs:
+  trigger-external-dispatch:
+    name: Trigger External Repository Dispatch
+    runs-on: ubuntu-latest
+    if: ${{ github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success' }}
+    
+    steps:
+      - name: Wait before triggering
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            WAIT_SECONDS=$(($(echo "${{ github.event.inputs.wait_minutes }}" | grep -E '^[0-9]+$' || echo "10") * 60))
+          else
+            WAIT_SECONDS=600
+          fi
+          sleep $WAIT_SECONDS
+        
+      - name: Trigger repository dispatch
+        uses: peter-evans/repository-dispatch@v3
+        with:
+          token: ${{ secrets.GH_TOKEN }}
+          repository: icloudhospital/cloudhospital.admin
+          event-type: api-release-completed
+          client-payload: |
+            {
+              "source_repository": "${{ github.repository }}",
+              "release_tag": "${{ github.event.workflow_run.head_sha }}",
+              "package_name": "ch-chat-api-typescript-axios"
+            }
