@@ -29,3 +29,5 @@ jobs:
           "deployment_environment": "production",
           "requires_manual_approval": false
         }
+    secrets:
+      GH_TOKEN: ${{ secrets.GH_TOKEN }}
