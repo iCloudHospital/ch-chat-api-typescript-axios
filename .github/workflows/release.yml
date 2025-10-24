@@ -81,14 +81,3 @@ jobs:
           NPM_TOKEN: ${{ secrets.NPM_TOKEN_GihubIntegratedServices }}
           HUSKY: 0
 
-      - name: Wait 10 minutes
-        run: sleep 600
-
-      - name: Send HTTP request after publish
-        run: |
-          curl -X POST \
-            -H "Authorization: Bearer ${{ secrets.GH_TOKEN }}" \
-            -H "Content-Type: application/json" \
-            -d '{"package": "ch-chat-api-typescript-axios"}' \
-            https://n8n.icloudhospital.com/webhook/github-api-release
-
