@@ -36,7 +36,7 @@ jobs:
         uses: actions/setup-node@v6
         with:
           node-version: 20
-          registry-url: https://registry.npmjs.org
+          registry-url: "https://registry.npmjs.org/"
 
       - name: Install dependencies
         run: npm install
@@ -79,7 +79,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
 
       - name: Publish to NPM
-        run: npm publish --access public --no-git-checks
+        run: npm publish --provenance --access public
         env:
           HUSKY: 0
           # GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
