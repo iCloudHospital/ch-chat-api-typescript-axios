@@ -18,18 +18,22 @@ on:
     tags:
       - "v*" # Trigger on version tags
 
+permissions:
+  id-token: write # Required for OIDC
+  contents: write
+
 jobs:
   release:
     name: Release
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           fetch-depth: 0
 
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6
         with:
           node-version: 20
           registry-url: https://registry.npmjs.org
@@ -77,7 +81,6 @@ jobs:
       - name: Publish to NPM
         run: npm publish --access public --no-git-checks
         env:
-          GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
-          NPM_TOKEN: ${{ secrets.NPM_TOKEN_GihubIntegratedServices }}
           HUSKY: 0
-
+          # GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
+          # NPM_TOKEN: ${{ secrets.NPM_TOKEN_GihubIntegratedServices }}
