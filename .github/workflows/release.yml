@@ -18,6 +18,9 @@ on:
     tags:
       - "v*" # Trigger on version tags
 
+env:
+  NODE_VERSION: 24
+
 permissions:
   id-token: write # Required for OIDC
   contents: write
@@ -35,52 +38,51 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v6
         with:
-          node-version: 20
+          node-version: ${{ env.NODE_VERSION }}
           registry-url: "https://registry.npmjs.org/"
 
+      - name: Echo payload
+        run: echo ${{ github.event.client_payload.message.tag }}
+
+      - name: NPM-Version
+        uses: Reedyuk/NPM-Version@1.1.1
+        with:
+          version: ${{ github.event.client_payload.message.tag }}
+          package: ./
+
+      - name: Add & Commit
+        uses: EndBug/add-and-commit@v9
+        with:
+          author_name: github-actions[bot]
+          author_email: github-actions[bot]@users.noreply.github.com
+
+      - name: Create Git tag
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"                    
+          git tag -a "v${{ github.event.client_payload.message.tag }}" -m "🔖 Release v${{ github.event.client_payload.message.tag }}"
+          git push origin "v${{ github.event.client_payload.message.tag }}"
+
       - name: Install dependencies
-        run: npm install
+        run: npm ci
 
       - name: Generate OpenAPI Spec
         run: npm run generate
 
-      - name: Configure Git
-        run: |
-          git config --local user.email "clcl6084@gmail.com"
-          git config --local user.name "froggy1014"
-
-      - name: Update version
-        run: npm version ${{ github.event.inputs.version || github.event.client_payload.version || 'patch' }} --no-git-tag-version
-
-      - name: Get package version
-        id: package-version
-        run: echo "current-version=$(node -p "require('./package.json').version")" >> $GITHUB_OUTPUT
-
-      - name: Commit generated files
-        uses: EndBug/add-and-commit@v9
-        with:
-          message: "📦 api: updated openapi files"
-          add: "."
-
-      - name: Create Git tag
-        run: |
-          git tag -a "v${{ steps.package-version.outputs.current-version }}" -m "🔖 Release v${{ steps.package-version.outputs.current-version }}"
-          git push origin "v${{ steps.package-version.outputs.current-version }}"
-
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v1
         with:
-          tag_name: "v${{ steps.package-version.outputs.current-version }}"
-          name: "Release v${{ steps.package-version.outputs.current-version }}"
+          tag_name: "v${{ github.event.client_payload.message.tag }}"
+          name: "Release v${{ github.event.client_payload.message.tag }}"
           draft: false
           prerelease: false
           generate_release_notes: true
         env:
           GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
 
-      - name: Publish to NPM
-        run: npm publish --provenance --access public
-        env:
-          HUSKY: 0
-          # GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
-          # NPM_TOKEN: ${{ secrets.NPM_TOKEN_GihubIntegratedServices }}
+      # - name: Publish to NPM
+      #   run: npm publish --provenance --access public
+      #   env:
+      #     HUSKY: 0
+      #     # GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
+      #     # NPM_TOKEN: ${{ secrets.NPM_TOKEN_GihubIntegratedServices }}

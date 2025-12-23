@@ -45,7 +45,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/icloudhospital/ch-chat-api-typescript-axios"
+    "url": "https://github.com/iCloudHospital/ch-chat-api-typescript-axios"
   },
   "files": [
     "dist",
