@@ -22,7 +22,7 @@ jobs:
       - name: Checkout tagged commit
         uses: actions/checkout@v6
         with:
-          fetch-depth: 0
+          token: ${{ secrets.PAT_PUSH_TOKEN }}
 
       - uses: actions/setup-node@v6
         with:
@@ -35,7 +35,7 @@ jobs:
 
       - name: Build project
         run: |
-          npm run generate
+          npm run build
 
       # - name: Ensure no legacy npm token
       #   run: |

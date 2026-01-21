@@ -5,105 +5,33 @@ on:
     types:
       - publish npm package
 
-  workflow_dispatch:
-    inputs:
-      version:
-        type: choice
-        description: "Version type to bump"
-        required: true
-        default: "patch"
-        options:
-          - patch
-          - minor
-          - major
-
-  push:
-    tags:
-      - "v*"
-
 env:
   NODE_VERSION: 24
 
 permissions:
-  id-token: write
+  id-token: write # Required for OIDC
   contents: write
 
 jobs:
-  release:
-    name: Release
+  build:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         with:
           token: ${{ secrets.PAT_PUSH_TOKEN }}
-          fetch-depth: 0   # 태그/릴리즈 작업 안정성
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
+      - uses: actions/setup-node@v6
         with:
           node-version: ${{ env.NODE_VERSION }}
           registry-url: "https://registry.npmjs.org/"
+      - run: npm ci
+      - name: Echo payload
+        run: echo ${{ github.event.client_payload.message.tag }}
 
-      - name: Install dependencies
-        run: npm ci
-
-      # 1) 어떤 트리거든 결국 RELEASE_TAG / RELEASE_VERSION 를 여기서 통일
-      - name: Resolve release tag/version
-        id: resolve
-        shell: bash
-        run: |
-          set -euo pipefail
-
-          EVENT="${{ github.event_name }}"
-          TAG=""
-
-          if [[ "$EVENT" == "repository_dispatch" ]]; then
-            TAG="${{ github.event.client_payload.message.tag }}"
-          elif [[ "$EVENT" == "push" ]]; then
-            TAG="${{ github.ref_name }}"
-          elif [[ "$EVENT" == "workflow_dispatch" ]]; then
-            # ✅ 선택 1) 입력된 bump 타입으로 npm version
-            npm version "${{ inputs.version }}" --no-git-tag-version
-            VERSION="$(node -p "require('./package.json').version")"
-            TAG="v${VERSION}"
-          else
-            echo "Unsupported event: $EVENT"
-            exit 1
-          fi
-
-          # TAG 정리: v 없으면 붙이고, v 있으면 유지
-          if [[ -z "$TAG" ]]; then
-            echo "Tag is empty"
-            exit 1
-          fi
-
-          if [[ "$TAG" != v* ]]; then
-            TAG="v${TAG}"
-          fi
-
-          VERSION="${TAG#v}"
-
-          echo "RELEASE_TAG=$TAG" >> "$GITHUB_ENV"
-          echo "RELEASE_VERSION=$VERSION" >> "$GITHUB_ENV"
-
-          echo "Resolved tag: $TAG"
-          echo "Resolved version: $VERSION"
-
-      - name: Echo payload/tag
-        run: |
-          echo "event=${{ github.event_name }}"
-          echo "tag=${RELEASE_TAG}"
-          echo "version=${RELEASE_VERSION}"
-
-      # 2) repo_dispatch / push(tag) 일 때는 payload/ref 태그 기반으로 버전 세팅
-      #    workflow_dispatch는 이미 npm version으로 package.json이 바뀌었으니 스킵
-      - name: Set package version from resolved version
-        if: ${{ github.event_name != 'workflow_dispatch' }}
+      - name: NPM-Version
         uses: Reedyuk/NPM-Version@1.1.1
         with:
-          version: ${{ env.RELEASE_VERSION }}
+          version: ${{ github.event.client_payload.message.tag }}
           package: ./
 
       - name: Add & Commit
@@ -111,39 +39,32 @@ jobs:
         with:
           author_name: github-actions[bot]
           author_email: github-actions[bot]@users.noreply.github.com
-          message: "chore(release): ${RELEASE_TAG}"
 
-      - name: Create Git tag (annotated) and push
+      - name: Create Git tag
         run: |
           git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git config user.email "github-actions[bot]@users.noreply.github.com"          
+          git tag -a "${{ github.event.client_payload.message.tag }}" -m "🔖 Release ${{ github.event.client_payload.message.tag }}"
+          git push origin "${{ github.event.client_payload.message.tag }}"
 
-          # 이미 태그가 있으면 실패하니까 방어
-          if git rev-parse "${RELEASE_TAG}" >/dev/null 2>&1; then
-            echo "Tag ${RELEASE_TAG} already exists. Skipping tag creation."
-          else
-            git tag -a "${RELEASE_TAG}" -m "🔖 Release ${RELEASE_TAG}"
-            git push origin "${RELEASE_TAG}"
-          fi
+      - run: |
+          npm run-script build
 
-      - name: Generate OpenAPI Spec
-        run: npm run generate
+      # - run: npm publish --provenance --access public
+      # env:
+      #   NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }} # use Trusted publishing
 
-      - name: Build
-        run: npm run build
-
-      - name: Create GitHub Release
-        uses: softprops/action-gh-release@v2
-        with:
-          tag_name: "${{ env.RELEASE_TAG }}"
-          name: "Release ${{ env.RELEASE_TAG }}"
-          draft: false
-          prerelease: false
-          generate_release_notes: true
-        env:
-          GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
-
-      # - name: Publish to NPM
-      #   run: npm publish --provenance --access public
+      # - uses: 8398a7/action-slack@v3
+      #   with:
+      #     status: custom
+      #     fields: workflow,job,commit,repo,ref,author,took
+      #     custom_payload: |
+      #       {
+      #         attachments: [{
+      #           color: '${{ job.status }}' === 'success' ? 'good' : '${{ job.status }}' === 'failure' ? 'danger' : 'warning',
+      #           text: `ch-api-client-typescript2 ${{ github.event.client_payload.message.tag }} publish ${{ job.status }} in ${process.env.AS_TOOK}`,
+      #         }]
+      #       }
       #   env:
-      #     HUSKY: 0
+      #     SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK }}
+      #     if: always()
