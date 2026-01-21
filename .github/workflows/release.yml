@@ -47,6 +47,9 @@ jobs:
           git tag -a "${{ github.event.client_payload.message.tag }}" -m "🔖 Release ${{ github.event.client_payload.message.tag }}"
           git push origin "${{ github.event.client_payload.message.tag }}"
 
+      - name: Generate
+        run: npm run generate
+
       - run: |
           npm run-script build
 
