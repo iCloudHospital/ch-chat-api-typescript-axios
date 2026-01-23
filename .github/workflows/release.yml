@@ -22,7 +22,7 @@ jobs:
   build:
     runs-on: ubuntu-latest
     env:
-      NPM_TOKEN: ""
+      NPM_TOKEN: ${{ secrets.PAT_PUSH_TOKEN }}
 
     steps:
       - name: Resolve release tag
@@ -67,6 +67,7 @@ jobs:
         with:
           author_name: github-actions[bot]
           author_email: github-actions[bot]@users.noreply.github.com
+          github_token: ${{ secrets.PAT_PUSH_TOKEN }}
 
       - name: Create Git tag
         run: |

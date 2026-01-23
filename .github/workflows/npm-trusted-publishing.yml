@@ -19,7 +19,7 @@ jobs:
   on-package-json-update:
     runs-on: ubuntu-latest
     env:
-      NPM_TOKEN: ""
+      NPM_TOKEN: ${{ secrets.PAT_PUSH_TOKEN }}
 
     steps:
       - name: Checkout tagged commit
@@ -59,7 +59,9 @@ jobs:
       #     NPM_CONFIG_USERCONFIG: ${{ runner.temp }}/.npmrc
 
       - name: Publish (OIDC)
-        run: NODE_AUTH_TOKEN="" npm publish --access public
+        run: npm publish --provenance --access public
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.PAT_PUSH_TOKEN }}
 
       - name: Get package version
         id: get_version
