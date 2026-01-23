@@ -8,6 +8,7 @@
     "commit": "cz",
     "prepare": "husky",
     "generate": "openapi-generator-cli generate",
+    "prebuild": "npm run generate",
     "build": "tsc",
     "changeset": "changeset",
     "ci:version": "changeset version",

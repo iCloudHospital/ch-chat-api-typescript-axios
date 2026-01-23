@@ -1,6 +1,12 @@
 name: Version Update
 
 on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Release tag/version (e.g. v5.87.3)"
+        required: true
+        type: string
   repository_dispatch:
     types:
       - publish npm package
@@ -17,6 +23,15 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      - name: Resolve release tag
+        id: release_tag
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            echo "tag=${{ inputs.tag }}" >> "$GITHUB_OUTPUT"
+          else
+            echo "tag=${{ github.event.client_payload.message.tag }}" >> "$GITHUB_OUTPUT"
+          fi
+
       - uses: actions/checkout@v6
         with:
           token: ${{ secrets.PAT_PUSH_TOKEN }}
@@ -26,12 +41,12 @@ jobs:
           registry-url: "https://registry.npmjs.org/"
       - run: npm ci
       - name: Echo payload
-        run: echo ${{ github.event.client_payload.message.tag }}
+        run: echo "${{ steps.release_tag.outputs.tag }}"
 
       - name: NPM-Version
         uses: Reedyuk/NPM-Version@1.1.1
         with:
-          version: ${{ github.event.client_payload.message.tag }}
+          version: ${{ steps.release_tag.outputs.tag }}
           package: ./
 
       - name: Add & Commit
@@ -44,8 +59,8 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"          
-          git tag -a "${{ github.event.client_payload.message.tag }}" -m "🔖 Release ${{ github.event.client_payload.message.tag }}"
-          git push origin "${{ github.event.client_payload.message.tag }}"
+          git tag -a "${{ steps.release_tag.outputs.tag }}" -m "🔖 Release ${{ steps.release_tag.outputs.tag }}"
+          git push origin "${{ steps.release_tag.outputs.tag }}"
 
       - name: Generate
         run: npm run generate
